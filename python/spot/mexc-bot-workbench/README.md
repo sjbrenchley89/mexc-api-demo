@@ -114,3 +114,74 @@ execution. The public monitor does not enable that code path.
 
 Astral's BTCUSD strategy uses a different quote currency and data provider from
 MEXC BTCUSDT. Connecting Astral does not route this monitor's signals to MEXC.
+
+## Continuous paper-trading worker
+
+`paper_runner.py` runs a persistent **simulation**, using real public BTCUSDT
+prices and the same closed-candle Donchian-20/10 signals. It never reads an
+exchange account, sends an order or consumes API credentials. Live flags and
+custom exchange hosts are ignored. It cannot be armed for real-money trading.
+
+```bash
+python paper_runner.py --once --data-dir paper-data
+python paper_runner.py --data-dir paper-data
+```
+
+The first command runs one simulated cycle; the second keeps polling every
+60 seconds. The worker stores its simulated cash, BTC position, fills, last
+processed candle and daily risk baseline in `paper-data/paper.sqlite3`.
+A transaction covers each candle and fill, preventing duplicate fills after
+restarts or simultaneous cycles. Failed writes roll back the entire fill.
+Keep this directory on persistent storage and back it up using SQLite's backup
+API while the worker runs. Do not delete it to restart the worker.
+
+Default simulation settings (all configurable with `PAPER_` environment names):
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `INITIAL_CASH` | 1000 | Simulated starting USDT; immutable for an existing ledger |
+| `POSITION_PCT` | 5 | Maximum initial-cash allocation per entry, including fees |
+| `DAILY_LOSS_PCT` | 2 | Mark-to-market loss threshold for blocking new entries |
+| `MIN_NOTIONAL` | 10 | Minimum simulated entry notional in USDT |
+| `FEE_BPS` | 10 | Estimated fee per simulated fill; not the account's actual fee |
+| `SLIPPAGE_BPS` | 5 | Estimated adverse slippage per simulated fill |
+| `POLL_SECONDS` | 60 | Seconds between successful market checks |
+
+Daily loss includes unrealized losses and estimated fees. A halt persists
+through restarts until the next UTC day; the first valid check that day sets
+the new baseline. Strategy exits remain allowed during a halt. This threshold
+does not guarantee a maximum loss: gaps, downtime and the strategy's exits
+can produce larger losses. SELL only consumes this ledger's simulated BTC.
+Simulation fills are simplified and do not validate MEXC quantity filters,
+liquidity, actual fees, partial fills or real-order reconciliation.
+
+Stale or invalid market data leaves the ledger unchanged. Network errors use
+bounded exponential backoff (15 to 300 seconds); logs include only the error
+class and HTTP status, never exception URLs. The worker exits cleanly on
+SIGTERM/SIGINT and uses the ledger on restart.
+
+The HTTP endpoint `GET /health` on `PORT` (default 8080) exposes only simulated
+mode, public-data freshness and failure count, not portfolio balances. It returns
+503 until a valid check succeeds, and again when the last valid check is older
+than 180 seconds. A running web server alone is not considered healthy.
+Other paths return 404. The public GitHub Pages feed remains a separate signal
+monitor and does not publish this simulated portfolio.
+
+For a Linux server with Docker Compose:
+
+```bash
+docker compose -f compose.paper.yml up -d --build
+docker compose -f compose.paper.yml logs --tail=50
+curl --fail http://127.0.0.1:8081/health
+```
+
+The named volume preserves the ledger; do not use `down --volumes` when
+restarting. Restart policy handles process exits; a Docker healthcheck reports
+staleness but does not itself restart a container. Hosting availability and
+exchange API access still limit uptime.
+
+On Railway, use this directory as the service root, the included Dockerfile,
+one replica, sleeping disabled, restart policy `ALWAYS`, and a persistent volume
+at `/data` with `PAPER_DATA_DIR=/data/paper`. Start with an isolated service and
+no exchange secrets. Verify a terminal successful deployment and a fresh
+`/health` response before describing the worker as running.
