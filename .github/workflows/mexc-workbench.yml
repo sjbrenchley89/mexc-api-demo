@@ -52,6 +52,8 @@ jobs:
         run: docker build -t mexc-workbench-paper:ci .
       - name: Verify paper accounting inside the image
         run: docker run --rm --volume "$PWD/tests:/tests:ro" mexc-workbench-paper:ci python -m unittest discover -s /tests -p test_paper_runner.py -v
+      - name: Verify controlled risk, CLI and local technical strategy inside the image
+        run: docker run --rm --volume "$PWD/tests:/tests:ro" mexc-workbench-paper:ci python -m unittest discover -s /tests -p 'test_controlled_*.py' -v
 
   monitor:
     needs: test
@@ -70,6 +72,8 @@ jobs:
         run: python monitor.py --output monitor-output/latest.json
         env:
           MEXC_LIVE_TRADING: 'false'
+      - name: Verify one paused controlled-paper market check
+        run: python workbench.py --data-dir /tmp/workbench-controlled-smoke run --once
       - name: Save public market snapshot
         uses: actions/upload-artifact@v4
         with:
