@@ -10,3 +10,4 @@ __pycache__/
 htmlcov/
 *.log
 test-results.txt
+monitor-output/
