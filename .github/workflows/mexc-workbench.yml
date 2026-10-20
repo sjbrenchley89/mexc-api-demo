@@ -40,6 +40,19 @@ jobs:
         env:
           MEXC_LIVE_TRADING: 'false'
 
+  paper-image:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build isolated paper worker image
+        run: docker build -t mexc-workbench-paper:ci .
+      - name: Verify paper accounting inside the image
+        run: docker run --rm --volume "$PWD/tests:/tests:ro" mexc-workbench-paper:ci python -m unittest discover -s /tests -p test_paper_runner.py -v
+
   monitor:
     needs: test
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
