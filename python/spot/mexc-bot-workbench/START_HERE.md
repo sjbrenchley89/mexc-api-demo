@@ -12,7 +12,7 @@ portfolio and one local technical strategy on MEXC public data. A command-line
 interface is a text menu. Paper trading records hypothetical fills rather than
 exchange transactions. A kill switch is a persistent emergency stop.
 
-TradingView, scanner, news, FOMO/Astral copy signals, Tradovate, portal imports,
+TradingView, scanner, news, Astral AI copy signals, Tradovate, portal imports,
 backtesting and the web dashboard are not implemented in this release. They cannot
 be enabled by setting an environment variable. There is no live-mode switch.
 
