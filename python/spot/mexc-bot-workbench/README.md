@@ -51,6 +51,29 @@ continuous service or an execution scheduler. The workflow needs no exchange
 secrets and has read-only repository permissions. Installation of the Workbench
 plugin alone does not create or activate the GitHub workflow.
 
+## Public status site
+
+The workflow builds a static status page, a `status.json` feed, an OpenAPI
+description, `llms.txt`, robots instructions and a sitemap. Only approved public
+snapshot fields are published; account data and credentials are excluded.
+The page reports both position scenarios and labels snapshots older than
+30 minutes stale, including when JavaScript is disabled at publication time.
+
+Enable **Settings → Pages → Source → GitHub Actions** in this repository.
+Successful checks on `main` then publish to
+<https://sjbrenchley89.github.io/mexc-api-demo/>. Deployment status is visible in
+the workflow's `publish` job. A failed check leaves the previous successful page
+visible with its original observation timestamp.
+
+To preview a build locally after a public monitor run:
+
+```bash
+python build_site.py monitor-output/latest.json --output-dir site-output
+python -m http.server 8000 --directory site-output
+```
+
+Visit `http://localhost:8000`. The build needs no exchange credentials.
+
 ## Optional account-backed preview
 
 Keep credentials in environment injection or a local `.env` excluded from Git.

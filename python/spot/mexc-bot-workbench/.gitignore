@@ -11,3 +11,4 @@ htmlcov/
 *.log
 test-results.txt
 monitor-output/
+site-output/
