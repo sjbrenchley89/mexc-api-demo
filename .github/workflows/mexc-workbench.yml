@@ -63,3 +63,32 @@ jobs:
           name: mexc-public-snapshot-${{ github.run_id }}
           path: python/spot/mexc-bot-workbench/monitor-output/latest.json
           retention-days: 7
+      - name: Build public status site
+        run: python build_site.py monitor-output/latest.json --output-dir site-output --run-url "$RUN_URL"
+        env:
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      - name: Upload public Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: python/spot/mexc-bot-workbench/site-output
+
+  publish:
+    needs: monitor
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: workbench-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Publish public status site
+        id: deployment
+        uses: actions/deploy-pages@v4
