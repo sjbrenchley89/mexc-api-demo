@@ -182,6 +182,10 @@ different defaults; do not use it for this controlled workflow.
 
 ## What must wait
 
+The separate [live readiness guide](LIVE_READINESS.md) explains how to inspect
+public exchange rules without connecting an account. Its report always keeps live
+execution blocked. It does not change this simulator's assumptions or saved ledger.
+
 The dashboard, historical backtests, mover scanner, news feed, portal imports and
 provider adapters require later implementation and separate validation. This
 milestone proves controls, not strategy profitability. Do not risk real funds based

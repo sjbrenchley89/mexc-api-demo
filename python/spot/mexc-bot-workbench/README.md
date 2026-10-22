@@ -2,6 +2,8 @@
 
 For the current $50 controlled paper workflow, begin with [START_HERE](START_HERE.md).
 The account-backed scaffold below is legacy code, not a live-ready trading system.
+For the separate read-only exchange preflight and remaining live prerequisites,
+read [LIVE_READINESS](LIVE_READINESS.md). The preflight cannot enable live trading.
 
 A Donchian signal monitor and an account-backed Spot bot scaffold. The automated
 workflow uses public market data only. It never reads an account, persists a

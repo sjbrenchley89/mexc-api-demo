@@ -54,6 +54,8 @@ jobs:
         run: docker run --rm --volume "$PWD/tests:/tests:ro" mexc-workbench-paper:ci python -m unittest discover -s /tests -p test_paper_runner.py -v
       - name: Verify controlled risk, CLI and local technical strategy inside the image
         run: docker run --rm --volume "$PWD/tests:/tests:ro" mexc-workbench-paper:ci python -m unittest discover -s /tests -p 'test_controlled_*.py' -v
+      - name: Verify read-only execution preflight inside the image
+        run: docker run --rm --volume "$PWD/tests:/tests:ro" mexc-workbench-paper:ci python -m unittest discover -s /tests -p test_execution_readiness.py -v
 
   monitor:
     needs: test

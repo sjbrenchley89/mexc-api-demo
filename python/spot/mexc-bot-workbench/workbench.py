@@ -147,6 +147,8 @@ def main(argv=None):
     initial.add_argument('--max-positions', type=int, default=2)
     status = sub.add_parser('status')
     status.add_argument('--json', action='store_true')
+    preflight = sub.add_parser('preflight', help='Inspect public exchange rules; cannot unlock live trading')
+    preflight.add_argument('--symbol', choices=SYMBOLS, default='BTCUSDT')
     for command in ('pause','resume','kill','menu'):
         sub.add_parser(command)
     review = sub.add_parser('review')
@@ -158,6 +160,9 @@ def main(argv=None):
     worker.add_argument('--symbols', nargs='+', choices=SYMBOLS, default=['BTCUSDT'])
     args = parser.parse_args(argv)
     try:
+        if args.command == 'preflight':
+            from execution_readiness import run_preflight
+            return run_preflight(args.symbol)
         settings = None
         if args.command == 'init':
             settings = replace(RiskSettings(), **{key: getattr(args,key) for key in RiskSettings().export() if hasattr(args,key)})
