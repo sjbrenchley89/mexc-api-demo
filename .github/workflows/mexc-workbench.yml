@@ -60,6 +60,8 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      pages_artifact_name: github-pages-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -87,6 +89,7 @@ jobs:
       - name: Upload public Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: python/spot/mexc-bot-workbench/site-output
 
   publish:
@@ -109,3 +112,5 @@ jobs:
       - name: Publish public status site
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ needs.monitor.outputs.pages_artifact_name }}
